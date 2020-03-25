@@ -2,6 +2,7 @@ package io.blockchainetl.streaming;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,13 +14,13 @@ public class CandlestickToJson extends DoFn<Candlestick, String> {
     @Setup
     public void setup() {
         mapper = new ObjectMapper();
+        mapper.registerModule(new JodaModule());
     }
 
     @ProcessElement
     public void processElement(ProcessContext c) {
         Candlestick candlestick = c.element();
         try {
-            // TODO: serialize JSON to Long
             c.output(mapper.writeValueAsString(candlestick));
         } catch (JsonProcessingException e) {
             LOG.error("Error serializing candlestick: " + e.getMessage());
