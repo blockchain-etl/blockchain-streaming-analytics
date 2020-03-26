@@ -60,7 +60,7 @@ public class CombineCandlestickFnTest {
         PAssert
                 .that(candlesticks)
                 .containsInAnyOrder(new Candlestick(
-                        Instant.ofEpochMilli(1571789344000L),
+                        Instant.ofEpochMilli(1571789349000L),
                         200L, 5L, 1L, 200L
                 ));
 

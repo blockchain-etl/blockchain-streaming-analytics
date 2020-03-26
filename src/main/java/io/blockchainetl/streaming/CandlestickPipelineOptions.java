@@ -29,11 +29,12 @@ public interface CandlestickPipelineOptions extends PipelineOptions, GcpOptions 
 
     void setOutputTopicsPrefix(String value);
 
-    @Description("List of time intervals defined in minutes to calculate candlestick aggregates")
-    @Default.InstanceFactory(DefaultTimeIntervalsFactory.class)
-    List<Integer> getTimeIntervals();
+    // TODO: consider defining durations in ISO-8601 notation e.g. - PT1M, PT3M etc.
+    @Description("List of windows' durations defined in seconds to calculate candlestick aggregates")
+    @Default.InstanceFactory(DefaultAggregationWindowsFactory.class)
+    List<Integer> getAggregationWindowsInSeconds();
 
-    void setTimeIntervals(List<Integer> value);
+    void setAggregationWindowsInSeconds(List<Integer> value);
 
     @Description("Triggering interval. How often to emit updated values.")
     @Default.Integer(30)

@@ -110,6 +110,6 @@ public class CombineCandlestickFn extends Combine.CombineFn<Candlestick, Combine
 
     @Override
     public Candlestick extractOutput(Accum accum) {
-        return new Candlestick(accum.openTimestamp, accum.open, accum.close, accum.low, accum.high);
+        return new Candlestick(accum.closeTimestamp, accum.open, accum.close, accum.low, accum.high);
     }
 }

@@ -1,13 +1,13 @@
 package io.blockchainetl.streaming;
 
+import com.google.pubsub.v1.ProjectTopicName;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.windowing.FixedWindows;
-import org.apache.beam.sdk.transforms.windowing.Window;
+import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.Duration;
 
@@ -37,72 +37,61 @@ public class CandlestickPipeline {
                     .fromSubscription(options.getInputDataTopicOrSubscription());
         }
 
-        PCollection<Candlestick> candlestick = pipeline
+        PCollection<Candlestick> candlestick1s = pipeline
                 .apply("Reading PubSub", readFromPubSub)
                 .apply("Deserialize JSON", ParDo.of(new DeserializeTransaction()))
                 .apply(new TransactionToCandlestick());
 
-        PCollection<Candlestick> candlestick1min = candlestick
-                .apply(
-                        "Fixed windows",
-                        Window.into(
-                                // TODO: add triggering
-                                FixedWindows.of(Duration.standardMinutes(1))))
-                .apply(
-                        "Calculate statistic",
-                        Combine.globally(new CombineCandlestickFn()).withoutDefaults()
-                );
+        Trigger trigger = Repeatedly.forever(AfterProcessingTime
+                .pastFirstElementInPane()
+                .plusDelayOf(Duration.standardSeconds(options.getTriggeringInterval())));
 
-        PCollection<Candlestick> candlestick3min = candlestick1min
-                .apply(
-                        "Fixed windows",
-                        Window.into(
-                                FixedWindows.of(Duration.standardMinutes(3))))
-                .apply(
-                        "Calculate statistic",
-                        Combine.globally(new CombineCandlestickFn()).withoutDefaults()
-                );
+        // TODO: validate aggregationWindowsInSeconds option
+        for (Integer windowSeconds : options.getAggregationWindowsInSeconds()) {
 
-        PCollection<Candlestick> candlestick5min = candlestick1min
-                .apply(
-                        "Fixed windows",
-                        Window.into(
-                                FixedWindows.of(Duration.standardMinutes(5))))
-                .apply(
-                        "Calculate statistic",
-                        Combine.globally(new CombineCandlestickFn()).withoutDefaults()
-                );
+            ProjectTopicName topicName = ProjectTopicName.of(
+                    options.getProject(),
+                    options.getOutputTopicsPrefix() + windowSeconds.toString()
+            );
 
-        PCollection<Candlestick> candlestick15min = candlestick1min
-                .apply(
-                        "Fixed windows",
-                        Window.into(
-                                FixedWindows.of(Duration.standardMinutes(15))))
-                .apply(
-                        "Calculate statistic",
-                        Combine.globally(new CombineCandlestickFn()).withoutDefaults()
-                );
-
-        candlestick1min
-                .apply(ParDo.of(new CandlestickToJson()))
-                .apply(PubsubIO.writeStrings()
-                        .to("projects/" + options.getProject() + "/topics/" + options.getOutputTopicsPrefix() + "1min"));
-
-        candlestick3min
-                .apply(ParDo.of(new CandlestickToJson()))
-                .apply(PubsubIO.writeStrings()
-                        .to("projects/" + options.getProject() + "/topics/" + options.getOutputTopicsPrefix() + "3min"));
-
-        candlestick5min
-                .apply(ParDo.of(new CandlestickToJson()))
-                .apply(PubsubIO.writeStrings()
-                        .to("projects/" + options.getProject() + "/topics/" + options.getOutputTopicsPrefix() + "5min"));
-
-        candlestick15min
-                .apply(ParDo.of(new CandlestickToJson()))
-                .apply(PubsubIO.writeStrings()
-                        .to("projects/" + options.getProject() + "/topics/" + options.getOutputTopicsPrefix() + "15min"));
+            // TODO: create topic if not exists
+            // TODO: optimisation - use most appropriate aggregate for the next aggregation
+            PCollection<Candlestick> candlestick = addCandlestickAggregate(
+                    candlestick1s,
+                    trigger,
+                    topicName.toString(),
+                    Duration.standardSeconds(windowSeconds)
+            );
+        }
 
         pipeline.run();
+    }
+
+    private static PCollection<Candlestick> addCandlestickAggregate(
+            PCollection<Candlestick> candlestick,
+            Trigger trigger,
+            String topicName,
+            Duration duration
+    ) {
+        PCollection<Candlestick> candlestickAggregation = candlestick
+                .apply(
+                        "Fixed windows",
+                        Window.<Candlestick>into(
+                                FixedWindows.of(duration))
+                                .triggering(trigger)
+                                .withAllowedLateness(Duration.ZERO)
+                                .accumulatingFiredPanes()
+                )
+                .apply(
+                        "Calculate statistic",
+                        Combine.globally(new CombineCandlestickFn()).withoutDefaults()
+                );
+
+        // TODO: instead of closeTimestamp use window end as Candlestick timestamp
+        candlestickAggregation
+                .apply(ParDo.of(new CandlestickToJson()))
+                .apply(PubsubIO.writeStrings().to(topicName));
+
+        return candlestickAggregation;
     }
 }
