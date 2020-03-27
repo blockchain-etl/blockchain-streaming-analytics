@@ -45,15 +45,15 @@ public class CandlestickPipeline {
             // TODO: optimisation - use most appropriate aggregate for the next aggregation
             candlestick1s
                     .apply(
-                            "Aggregation of " + windowSeconds + " seconds",
+                            "Aggregation of " + windowSeconds + "s",
                             new CandlestickAggregation(Duration.standardSeconds(windowSeconds), trigger)
                     )
                     .apply(
-                            "Convert " + windowSeconds + " seconds candlestick to JSON",
+                            "Convert " + windowSeconds + "s candlestick to JSON",
                             ParDo.of(new CandlestickToJson())
                     )
                     .apply(
-                            "Publish to " + topicName.toString(),
+                            "Publish to " + topicName.getTopic(),
                             PubsubIO.writeStrings().to(topicName.toString())
                     );
         }
