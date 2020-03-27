@@ -1,15 +1,27 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick;
 
 
 import org.apache.beam.sdk.extensions.gcp.options.GcpOptions;
-import org.apache.beam.sdk.options.Default;
-import org.apache.beam.sdk.options.Description;
-import org.apache.beam.sdk.options.PipelineOptions;
-import org.apache.beam.sdk.options.Validation;
+import org.apache.beam.sdk.options.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 public interface CandlestickPipelineOptions extends PipelineOptions, GcpOptions {
+
+    class DefaultAggregationWindowsFactory implements DefaultValueFactory<List<Integer>> {
+        /**
+         * Creates a default value for calculation time intervals.
+         *
+         * @param options The current pipeline options.
+         * @return The default value to be used for the time intervals in seconds.
+         */
+        @Override
+        public List<Integer> create(PipelineOptions options) {
+            // 1min, 3min, 5min, 15min
+            return Arrays.asList(60, 180, 300, 900);
+        }
+    }
 
     @Description("Input type")
     @Default.String("ethereum")

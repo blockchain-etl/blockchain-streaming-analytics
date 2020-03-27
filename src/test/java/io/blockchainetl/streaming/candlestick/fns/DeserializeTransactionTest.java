@@ -1,6 +1,8 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick.fns;
 
 
+import io.blockchainetl.streaming.candlestick.domain.EthereumTransaction;
+import io.blockchainetl.streaming.candlestick.fns.DeserializeTransaction;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;

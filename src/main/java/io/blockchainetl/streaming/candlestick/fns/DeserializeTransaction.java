@@ -1,8 +1,9 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick.fns;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import io.blockchainetl.streaming.candlestick.domain.EthereumTransaction;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;

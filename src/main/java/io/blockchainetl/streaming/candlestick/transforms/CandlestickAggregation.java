@@ -1,5 +1,7 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick.transforms;
 
+import io.blockchainetl.streaming.candlestick.domain.Candlestick;
+import io.blockchainetl.streaming.candlestick.fns.CombineCandlestickFn;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
@@ -12,7 +14,7 @@ public class CandlestickAggregation extends PTransform<PCollection<Candlestick>,
     private Duration duration;
     private Trigger trigger;
 
-    CandlestickAggregation(Duration duration, Trigger trigger) {
+    public CandlestickAggregation(Duration duration, Trigger trigger) {
         this.duration = duration;
         this.trigger = trigger;
     }

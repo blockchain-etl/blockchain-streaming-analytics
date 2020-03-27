@@ -1,6 +1,11 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick;
 
 import com.google.pubsub.v1.ProjectTopicName;
+import io.blockchainetl.streaming.candlestick.fns.DeserializeTransaction;
+import io.blockchainetl.streaming.candlestick.domain.Candlestick;
+import io.blockchainetl.streaming.candlestick.fns.CandlestickToJson;
+import io.blockchainetl.streaming.candlestick.transforms.CandlestickAggregation;
+import io.blockchainetl.streaming.candlestick.transforms.TransactionToCandlestick;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;

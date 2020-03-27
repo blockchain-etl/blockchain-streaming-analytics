@@ -1,4 +1,4 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick.domain;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -8,10 +8,10 @@ import org.joda.time.Instant;
 
 @DefaultCoder(AvroCoder.class)
 public class Candlestick {
-    Candlestick() {
+    public Candlestick() {
     }
 
-    Candlestick(Instant timestamp, Long open, Long close, Long low, Long high) {
+    public Candlestick(Instant timestamp, Long open, Long close, Long low, Long high) {
         this.timestamp = timestamp;
         this.open = open;
         this.close = close;

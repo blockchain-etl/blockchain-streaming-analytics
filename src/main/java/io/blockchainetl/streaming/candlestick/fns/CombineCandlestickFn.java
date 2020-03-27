@@ -1,5 +1,6 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick.fns;
 
+import io.blockchainetl.streaming.candlestick.domain.Candlestick;
 import org.apache.avro.reflect.Nullable;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;

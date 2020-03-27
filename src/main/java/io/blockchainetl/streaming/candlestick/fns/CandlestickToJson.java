@@ -1,8 +1,9 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick.fns;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
+import io.blockchainetl.streaming.candlestick.domain.Candlestick;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

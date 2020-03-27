@@ -1,4 +1,4 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick.fns;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;

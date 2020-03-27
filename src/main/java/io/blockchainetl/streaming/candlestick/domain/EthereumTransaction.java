@@ -1,10 +1,11 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import io.blockchainetl.streaming.candlestick.fns.DeserializeTimestamp;
 import org.apache.avro.reflect.Nullable;
 import org.apache.beam.sdk.coders.AvroCoder;
 import org.apache.beam.sdk.coders.DefaultCoder;

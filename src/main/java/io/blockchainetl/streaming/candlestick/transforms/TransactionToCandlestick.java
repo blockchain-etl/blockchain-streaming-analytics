@@ -1,5 +1,7 @@
-package io.blockchainetl.streaming;
+package io.blockchainetl.streaming.candlestick.transforms;
 
+import io.blockchainetl.streaming.candlestick.domain.Candlestick;
+import io.blockchainetl.streaming.candlestick.domain.EthereumTransaction;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.GroupByKey;
 import org.apache.beam.sdk.transforms.PTransform;
