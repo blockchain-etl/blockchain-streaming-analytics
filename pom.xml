@@ -220,6 +220,13 @@
       <version>${beam.version}</version>
     </dependency>
 
+    <!-- Adds a dependency on the Dataflow worker. -->
+    <dependency>
+      <groupId>org.apache.beam</groupId>
+      <artifactId>beam-runners-google-cloud-dataflow-java</artifactId>
+      <version>${beam.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>joda-time</groupId>
       <artifactId>joda-time</artifactId>
