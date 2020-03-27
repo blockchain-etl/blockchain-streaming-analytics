@@ -1,7 +1,6 @@
 package io.blockchainetl.streaming.candlestick.fns;
 
 import io.blockchainetl.streaming.candlestick.domain.Candlestick;
-import io.blockchainetl.streaming.candlestick.fns.CombineCandlestickFn;
 import io.blockchainetl.streaming.candlestick.transforms.TransactionToCandlestick;
 import io.blockchainetl.streaming.candlestick.domain.EthereumTransaction;
 import org.apache.beam.sdk.testing.PAssert;

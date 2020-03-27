@@ -1,7 +1,6 @@
 package io.blockchainetl.streaming.candlestick.fns;
 
 import io.blockchainetl.streaming.candlestick.domain.Candlestick;
-import io.blockchainetl.streaming.candlestick.fns.CandlestickToJson;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestPipeline;
 import org.apache.beam.sdk.transforms.Create;
