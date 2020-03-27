@@ -5,7 +5,6 @@ import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubIO;
 import org.apache.beam.sdk.io.gcp.pubsub.PubsubMessage;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
-import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.ParDo;
 import org.apache.beam.sdk.transforms.windowing.*;
 import org.apache.beam.sdk.values.PCollection;
@@ -26,19 +25,8 @@ public class CandlestickPipeline {
 
         Pipeline pipeline = Pipeline.create(options);
 
-        PubsubIO.Read<PubsubMessage> readFromPubSub;
-        if (options.getInputDataTopicOrSubscription().contains("/topics/")) {
-            readFromPubSub = PubsubIO
-                    .readMessagesWithAttributes()
-                    .fromTopic(options.getInputDataTopicOrSubscription());
-        } else {
-            readFromPubSub = PubsubIO
-                    .readMessagesWithAttributes()
-                    .fromSubscription(options.getInputDataTopicOrSubscription());
-        }
-
         PCollection<Candlestick> candlestick1s = pipeline
-                .apply("Reading PubSub", readFromPubSub)
+                .apply("Reading PubSub", getPubSubReadIO(options.getInputDataTopicOrSubscription()))
                 .apply("Deserialize JSON", ParDo.of(new DeserializeTransaction()))
                 .apply(new TransactionToCandlestick());
 
@@ -48,7 +36,6 @@ public class CandlestickPipeline {
 
         // TODO: validate aggregationWindowsInSeconds option
         for (Integer windowSeconds : options.getAggregationWindowsInSeconds()) {
-
             ProjectTopicName topicName = ProjectTopicName.of(
                     options.getProject(),
                     options.getOutputTopicsPrefix() + windowSeconds.toString()
@@ -56,42 +43,33 @@ public class CandlestickPipeline {
 
             // TODO: create topic if not exists
             // TODO: optimisation - use most appropriate aggregate for the next aggregation
-            PCollection<Candlestick> candlestick = addCandlestickAggregate(
-                    candlestick1s,
-                    trigger,
-                    topicName.toString(),
-                    Duration.standardSeconds(windowSeconds)
-            );
+            candlestick1s
+                    .apply(
+                            "Aggregation of " + windowSeconds + " seconds",
+                            new CandlestickAggregation(Duration.standardSeconds(windowSeconds), trigger)
+                    )
+                    .apply(
+                            "Convert " + windowSeconds + " seconds candlestick to JSON",
+                            ParDo.of(new CandlestickToJson())
+                    )
+                    .apply(
+                            "Publish to " + topicName.toString(),
+                            PubsubIO.writeStrings().to(topicName.toString())
+                    );
         }
 
         pipeline.run();
     }
 
-    private static PCollection<Candlestick> addCandlestickAggregate(
-            PCollection<Candlestick> candlestick,
-            Trigger trigger,
-            String topicName,
-            Duration duration
-    ) {
-        PCollection<Candlestick> candlestickAggregation = candlestick
-                .apply(
-                        "Fixed windows",
-                        Window.<Candlestick>into(
-                                FixedWindows.of(duration))
-                                .triggering(trigger)
-                                .withAllowedLateness(Duration.ZERO)
-                                .accumulatingFiredPanes()
-                )
-                .apply(
-                        "Calculate statistic",
-                        Combine.globally(new CombineCandlestickFn()).withoutDefaults()
-                );
+    private static PubsubIO.Read<PubsubMessage> getPubSubReadIO(String inputDataTopicOrSubscription) {
+        if (inputDataTopicOrSubscription.contains("/topics/")) {
+            return PubsubIO
+                    .readMessagesWithAttributes()
+                    .fromTopic(inputDataTopicOrSubscription);
+        }
 
-        // TODO: instead of closeTimestamp use window end as Candlestick timestamp
-        candlestickAggregation
-                .apply(ParDo.of(new CandlestickToJson()))
-                .apply(PubsubIO.writeStrings().to(topicName));
-
-        return candlestickAggregation;
+        return PubsubIO
+                .readMessagesWithAttributes()
+                .fromSubscription(inputDataTopicOrSubscription);
     }
 }
