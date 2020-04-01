@@ -53,12 +53,12 @@ public class CandlestickAggregationTest {
                 .that(candlestickAggregation)
                 .inEarlyPane(window)
                 .containsInAnyOrder(new Candlestick(
-                        Instant.ofEpochMilli(5000L),
+                        Instant.ofEpochMilli(AGGREGATION_SECONDS * 1000),
                         10L, 9L, 8L, 10L
                 ))
                 .inFinalPane(window)
                 .containsInAnyOrder(new Candlestick(
-                        Instant.ofEpochMilli(5000L + TRIGGERING_INTERVAL*1000),
+                        Instant.ofEpochMilli(AGGREGATION_SECONDS*1000),
                         10L, 7L, 7L, 10L
                 ))
         ;
