@@ -1,13 +1,11 @@
 package io.blockchainetl.streaming.candlestick.transforms;
 
-import com.google.common.math.Quantiles;
 import io.blockchainetl.streaming.candlestick.domain.Candlestick;
 import io.blockchainetl.streaming.candlestick.fns.CombineCandlestickFn;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.ParDo;
-import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Trigger;
 import org.apache.beam.sdk.transforms.windowing.Window;
@@ -26,7 +24,6 @@ public class CandlestickAggregation extends PTransform<PCollection<Candlestick>,
 
     @Override
     public PCollection<Candlestick> expand(PCollection<Candlestick> input) {
-
         return input
                 .apply(
                         "Fixed windows",
@@ -46,8 +43,9 @@ public class CandlestickAggregation extends PTransform<PCollection<Candlestick>,
                             @Element Candlestick input,
                             OutputReceiver<Candlestick> output
                     ) {
+                        Instant timestamp = roundTimestampUp(input.getTimestamp(), duration);
                         Candlestick candlestick = new Candlestick(
-                                Instant.ofEpochMilli(roundUpTimestamp(input.getTimestamp())),
+                                timestamp,
                                 input.getOpen(),
                                 input.getClose(),
                                 input.getLow(),
@@ -56,11 +54,13 @@ public class CandlestickAggregation extends PTransform<PCollection<Candlestick>,
 
                         output.output(candlestick);
                     }
-
-                    private long roundUpTimestamp(Instant timestamp) {
-                        return (long) (duration.getMillis()
-                                * Math.ceil((float) timestamp.getMillis() / duration.getMillis()));
-                    }
                 }));
+    }
+
+    static Instant roundTimestampUp(Instant timestamp, Duration duration) {
+        long timestampMs = timestamp.getMillis();
+        long durationMS = duration.getMillis();
+
+        return Instant.ofEpochMilli(timestampMs - Math.floorMod(timestampMs, durationMS) + durationMS);
     }
 }

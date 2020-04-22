@@ -10,6 +10,7 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.TimestampedValue;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -64,5 +65,17 @@ public class CandlestickAggregationTest {
         ;
 
         testPipeline.run();
+    }
+
+    @Test
+    public void testRoundTimestampUp() {
+        // setup
+        Instant ts = Instant.parse("2020-04-22T20:14:39.000Z");
+
+        // test
+        Instant roundedTs = CandlestickAggregation.roundTimestampUp(ts, Duration.standardSeconds(60));
+
+        // check
+        Assert.assertEquals("2020-04-22T20:15:00.000Z", roundedTs.toString());
     }
 }

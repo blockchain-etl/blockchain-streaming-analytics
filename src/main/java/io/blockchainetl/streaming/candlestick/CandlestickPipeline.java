@@ -70,11 +70,15 @@ public class CandlestickPipeline {
         if (inputDataTopicOrSubscription.contains("/topics/")) {
             return PubsubIO
                     .readMessagesWithAttributes()
+                    .withIdAttribute("item_id")
+                    .withTimestampAttribute("item_timestamp")
                     .fromTopic(inputDataTopicOrSubscription);
         }
 
         return PubsubIO
                 .readMessagesWithAttributes()
+                .withIdAttribute("item_id")
+                .withTimestampAttribute("item_timestamp")
                 .fromSubscription(inputDataTopicOrSubscription);
     }
 }
